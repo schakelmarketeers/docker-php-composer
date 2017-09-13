@@ -32,19 +32,24 @@ RUN apt-get update \
 COPY bin/install-composer.sh /sbin/install-composer
 RUN /sbin/install-composer
 
+# Clean up the mess
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Adds a schakel user to use from now on
+RUN adduser --home=/home/schakel --shell=/bin/bash schakel
+USER schakel
+WORKDIR /home/schakel
+
 # Add Composer binaries to path
-ENV PATH=$PATH:/usr/share/composer/vendor/bin
+ENV PATH=$PATH:/home/schakel/.composer/vendor/bin
 
 # Disable interaction globally and forcefully set home
 ENV COMPOSER_NO_INTERACTION=1
-ENV COMPOSER_HOME=/usr/share/composer
+ENV COMPOSER_HOME=/home/schakel/.composer/vendor/bin
 
 # Install PHPUnit and PHP_CodeSniffer
 RUN composer global require \
     --no-progress --no-suggest \
     phpunit/phpunit \
     squizlabs/php_codesniffer
-
-# Cleanup
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
